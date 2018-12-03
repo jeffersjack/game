@@ -19,22 +19,15 @@ import javax.swing.*;
 public class Flappy implements ActionListener, KeyListener{
 	public static Flappy instance;	//game instance
     
-    private final int WIDTH = 800;		//Can't these two be moved outside the class
-    private final int HEIGHT = 600;		//default HEIGHT and WIDTH was 800 x 600, def speed = 10
-    //private int score = 0, gameSpeed = 10, objectCount = 0, beerCollected = 0;
+    private final int WIDTH = 1000;		//Can't these two be moved outside the class?
+    private final int HEIGHT = 700;	
     private int score, gameSpeed, objectCount, beerCollected;
     
-    private int beerHeight = 70, beerWidth = 40;
-    
-    //default HEIGHT and WIDTH was 800 x 600, def speed = 10
+    private int beerHeight = 70, beerWidth = 38;
     
     private Renderer renderer;		//also confused by this
-    private Rectangle character;
-    
-    ImageIcon iconBackground;         //
-    JLabel jlBackgroundImage;         // for background image
-    Image background;                 //
-    
+    private Rectangle brett;
+
     private ArrayList<Rectangle> cloud;
     private Random rand;
 
@@ -43,7 +36,8 @@ public class Flappy implements ActionListener, KeyListener{
     				isDrunk = false;
 
     private int gameTick, 
-    			drunkCooldown = 0;
+    			drunkCooldown = 0,
+    			highscore = 0;
 
     public Flappy() {	//constructor
 
@@ -53,7 +47,7 @@ public class Flappy implements ActionListener, KeyListener{
         renderer = new Renderer();
         rand = new Random();
         cloud = new ArrayList<Rectangle>();
-        character = new Rectangle(200, 220, 20, 20);
+        brett = new Rectangle(200, 220, 20, 20);
         
         jFrame.setTitle("Flappy Brett");
         jFrame.add(renderer);
@@ -76,22 +70,22 @@ public class Flappy implements ActionListener, KeyListener{
         g.fillRect(0,0, WIDTH, HEIGHT);		
         
         g.setColor(Color.blue);
-        g.fillRect(0, HEIGHT - 100, WIDTH, 100);	//resets the 'ocean' at the bottom
-
-        g.setColor(Color.green);	//creates the 'Character'
-        g.fillRect(character.x, character.y, character.width, character.height);
+        g.fillRect(0, HEIGHT - 150, WIDTH, 150);	//resets the 'ocean' at the bottom
+        
+        g.setColor(Color.green);	//creates brett
+        g.fillRect(brett.x, brett.y, brett.width, brett.height);
         
         g.setColor(Color.WHITE);	
         g.setFont(new Font("Arial", 1 ,32));	
         g.drawString("Score: " + score , 15, 35);	//draw score counter
         g.drawString("Beers enjoyed: " + beerCollected , 15, 67);	//draws beerCollected
 
-        if (character.y >=  HEIGHT - 100) {
+        if (brett.y >=  HEIGHT - 100) {
             gameover = true;
         }
         
-        if((character.y ) < 0)
-        	character.y = 0;
+        if((brett.y ) < 0)
+        	brett.y = 0;
         
         for (Rectangle rect : cloud) {	//draws and fills clouds	
         	if(rect.width == beerWidth) {
@@ -103,81 +97,75 @@ public class Flappy implements ActionListener, KeyListener{
         	} 
         }
         
-        
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", 1, 24));
         g.drawString("Drunk Cooldown: " + drunkCooldown, 15, 95);
 
         g.drawString("Speed: " + gameSpeed , 15, 122);
-        
-        /*background = getImage(getCodeBase(), "background.jpg");
-        
-        iconBackground = new ImageIcon(background);
-                                                                     // I'm working on adding a background image.
-        jlBackgroundImage = new JLabel(iconBackground);              // I'm using this video (so code stays consistent): 
-        jlBackgroundImage.setBounds(0, 0, WIDTH, HEIGHT);            // https://www.youtube.com/watch?v=LzN-C3A5s9Y
-        this.add(jlBackgroundImage);
-        */
-        
-        /*
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", 1 ,32));
-        g.drawString("objectCount is" + objectCount , 15, 75);
-         */
 
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", 1, 60));
         if (!start) {
         	g.setFont(new Font("Arial", 1, 72));
-        	g.drawString("Flappy Brett", 170, 200);
-        	g.setFont(new Font("Arial", 1, 42));
-        	g.drawString("Press space to jump", 170, 300);
-        	g.drawString("Press left arrow to slow down", 90, 370);
-        	g.drawString("Press right arrow to speed up", 90, 420);
-        	g.setFont(new Font("Arial", 1, 24));  
-        	g.drawString("10 points for passing a cloud", 30, 470);
-        	g.drawString("20 points for collecting a beer", 400, 470);
+        	g.drawString("Flappy Brett", WIDTH/4, 200);
         	
-        	//g.drawString("Press space to start!", 75, HEIGHT / 2);
+        	g.setFont(new Font("Arial", 1, 42));
+        	g.drawString("Press space to jump", WIDTH/4, 300);
+        	g.drawString("Press left arrow to slow down", WIDTH/6, 370);
+        	g.drawString("Press right arrow to speed up", WIDTH/6, 420);
+        	
+        	g.setFont(new Font("Arial", 1, 24));  
+        	g.drawString("10 points for passing a cloud", 100, 470);
+        	g.drawString("20 points for collecting a beer", 470, 470);
+        	
         	gameSpeed = 10;
         }
         else if (gameover) {
-            g.drawString("Game Over!", 200, HEIGHT / 2);
+        	g.setFont(new Font("Arial", 1, 90));
+            g.drawString("Game Over!", WIDTH/4, 230);
+            
+            g.setFont(new Font("Arial", 1, 50));
+            g.drawString("Score: " + score, 300, 300);
+            
+            g.setFont(new Font("Arial", 1, 50));
+            if (score > highscore) {
+            	highscore = score;
+            }
+            g.drawString("Highscore: " + highscore, 300, 370);
+            
             objectCount = 0;
         }
     }
 
     private void addCloud() {	//adds clouds
         if (cloud.isEmpty() ) {	//if true, the function adds a new cloud at a random height
-            cloud.add(new Rectangle(WIDTH + cloud.size() * 300, rand.nextInt(HEIGHT-120), 80, 100));
-        } else {	//spawning a cloud with proper spacing outside of frame
-            cloud.add(new Rectangle(cloud.get(cloud.size() - 1).x + 300, rand.nextInt(HEIGHT-120), 80, 100));
+            cloud.add(new Rectangle(WIDTH + cloud.size() * 300, rand.nextInt(HEIGHT-200), 80, 100));
+        } else {	            //spawning a cloud with proper spacing outside of frame
+            cloud.add(new Rectangle(cloud.get(cloud.size() - 1).x + 300, rand.nextInt(HEIGHT-200), 80, 100));
         }
     }
     
-    private void addBeer() {
-    	cloud.add(new Rectangle(cloud.get(cloud.size() - 1).x + 300, rand.nextInt(HEIGHT-120), beerWidth, beerHeight));
+    private void addBeer() {    //adds a consumable beer instead of a cloud
+    	cloud.add(new Rectangle(cloud.get(cloud.size() - 1).x + 300, rand.nextInt(HEIGHT-170), beerWidth, beerHeight));
     }
   
     private void addObject() {
     	int beerRandom = rand.nextInt(7) + 1;
-    	if(objectCount == 0) {//initial cloud
+    	if(objectCount == 0) {          //initial cloud
     		addCloud();
     	}else if(objectCount % beerRandom != 0) {//recurring clouds
-    	//}else if(objectCount % 4 != 0) {//recurring clouds
     		addCloud();
     	}else {
-    		addBeer();
+    		addBeer();                  //beer instead of cloud
     	}
     	objectCount++;
     }
     
-    private void checkDrunk() {
+    private void checkDrunk() { 
     	
     	if(isDrunk == true) {
     		drunkCooldown += 75;//set this to a smaller amount for binge drinking
     	} else if(beerCollected >= 6) {
-    		drunkCooldown += rand.nextInt(400) +200;
+    		drunkCooldown += rand.nextInt(400) +200;  //goes into drunk mode if6+ beers collected
     		isDrunk = true;
     	}
 
@@ -193,7 +181,7 @@ public class Flappy implements ActionListener, KeyListener{
             beerCollected = 0;
             drunkCooldown = 0;
             isDrunk = false;
-            character = new Rectangle(200, 300, 20, 20);
+            brett = new Rectangle(200, 300, 20, 20);
             cloud.clear();
             addCloud();
             
@@ -207,7 +195,7 @@ public class Flappy implements ActionListener, KeyListener{
             start = true;
         }
         else if (!gameover) {
-            character.y -= 70;
+            brett.y -= 70;
             gameTick = 0;
         }
 
@@ -225,7 +213,7 @@ public class Flappy implements ActionListener, KeyListener{
                 Rectangle rect = cloud.get(i);
                 rect.x -= gameSpeed;
                 
-                if(rect.x <= character.x  && rect.x >= character.x - gameSpeed + 1 && !gameover && rect.width != beerWidth){	//score updater for cloud passage
+                if(rect.x <= brett.x  && rect.x >= brett.x - gameSpeed + 1 && !gameover && rect.width != beerWidth){	//score updater for cloud passage
                 	score+= 10;	
                 } 
             }
@@ -239,30 +227,30 @@ public class Flappy implements ActionListener, KeyListener{
                 }
             }
             
-            for (int i = 0; i < cloud.size(); i++) {	//cloud or beer hit detection
+            for (int i = 0; i < cloud.size(); i++) {	//cloud/beer hit detection
                 Rectangle rect = cloud.get(i);
                 
-                if (rect.intersects(character) && rect.width == beerWidth) {//adds score for hitting beer and removes token
+                if (rect.intersects(brett) && rect.width == beerWidth) {//adds score for hitting beer and removes beer
             		score+= 20;
             		cloud.remove(rect);
             		addObject();      		
             		beerCollected++;
             		checkDrunk();
             		
-            	} else if (rect.intersects(character)) { //lose if cloud was hit
+            	} else if (rect.intersects(brett)) {    //lose if cloud was hit
                     gameover = true;
-                    character.x -= gameSpeed;
+                    brett.x -= gameSpeed;
                 }  
             }
 
             
             if (isDrunk == true) {
             	if(drunkCooldown % 12 == 0)
-            		gameSpeed = rand.nextInt(12) + 7;	//tinker with this
+            		gameSpeed = rand.nextInt(12) + 7;	//if drunk, game speed randomly speeds up and slows down
             	
             	drunkCooldown--;
             	
-            	if(drunkCooldown == 0) {
+            	if(drunkCooldown == 0) {                //resets drunkenness when cooldown ends
             		isDrunk = false;
             		gameSpeed = 10;
             		beerCollected = 0;
@@ -271,8 +259,8 @@ public class Flappy implements ActionListener, KeyListener{
  
             gameTick ++;
           
-           if (gameTick %2 == 0 && character.y < HEIGHT - 100)//this is for letting the character fall and setting floor height
-                character.y += gameTick;
+           if (gameTick %2 == 0 && brett.y < HEIGHT - 100)  //this is for letting the brett fall and setting floor height
+                brett.y += gameTick;
 
         }
 
@@ -288,14 +276,14 @@ public class Flappy implements ActionListener, KeyListener{
     	if (e.getKeyCode() == KeyEvent.VK_LEFT) 	//increase game gameSpeed by 1 pixel per tick
     		gameSpeed = (gameSpeed > 1) ?  gameSpeed -= 1 : 1;
 
-    	if (e.getKeyCode() == KeyEvent.VK_RIGHT)	//decrease game speed by ~1 pixel per tick
+    	if (e.getKeyCode() == KeyEvent.VK_RIGHT)	//decrease game speed by 1 pixel per tick
     		gameSpeed++;
     	
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {  //jumps when space bar is pressed
             flap();
         }
         
